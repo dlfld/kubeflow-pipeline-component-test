@@ -1,0 +1,893 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: pipeline-my-handle-
+  annotations: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.11, pipelines.kubeflow.org/pipeline_compilation_time: '2022-02-22T12:14:22.085831',
+    pipelines.kubeflow.org/pipeline_spec: '{"name": "Pipeline my handle"}'}
+  labels: {pipelines.kubeflow.org/kfp_sdk_version: 1.8.11}
+spec:
+  entrypoint: pipeline-my-handle
+  templates:
+  - name: add-double
+    container:
+      args: [--params1, '10', --params2, '10', --output-text, /tmp/outputs/output_text/data]
+      command:
+      - sh
+      - -ec
+      - |
+        program_path=$(mktemp)
+        printf "%s" "$0" > "$program_path"
+        python3 -u "$program_path" "$@"
+      - |
+        def _make_parent_dirs_and_return_path(file_path: str):
+            import os
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            return file_path
+
+        def add_double(
+                output_text_path, params1 = 0, params2 = 0):
+            print("step in add_double")
+            with open(output_text_path, 'w') as writer:
+                writer.write(str(params1 + params2))
+
+        import argparse
+        _parser = argparse.ArgumentParser(prog='Add double', description='')
+        _parser.add_argument("--params1", dest="params1", type=int, required=False, default=argparse.SUPPRESS)
+        _parser.add_argument("--params2", dest="params2", type=int, required=False, default=argparse.SUPPRESS)
+        _parser.add_argument("--output-text", dest="output_text_path", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
+        _parsed_args = vars(_parser.parse_args())
+
+        _outputs = add_double(**_parsed_args)
+      image: python:3.7
+    outputs:
+      artifacts:
+      - {name: add-double-output_text, path: /tmp/outputs/output_text/data}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.11
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"implementation": {"container":
+          {"args": [{"if": {"cond": {"isPresent": "params1"}, "then": ["--params1",
+          {"inputValue": "params1"}]}}, {"if": {"cond": {"isPresent": "params2"},
+          "then": ["--params2", {"inputValue": "params2"}]}}, "--output-text", {"outputPath":
+          "output_text"}], "command": ["sh", "-ec", "program_path=$(mktemp)\nprintf
+          \"%s\" \"$0\" > \"$program_path\"\npython3 -u \"$program_path\" \"$@\"\n",
+          "def _make_parent_dirs_and_return_path(file_path: str):\n    import os\n    os.makedirs(os.path.dirname(file_path),
+          exist_ok=True)\n    return file_path\n\ndef add_double(\n        output_text_path,
+          params1 = 0, params2 = 0):\n    print(\"step in add_double\")\n    with
+          open(output_text_path, ''w'') as writer:\n        writer.write(str(params1
+          + params2))\n\nimport argparse\n_parser = argparse.ArgumentParser(prog=''Add
+          double'', description='''')\n_parser.add_argument(\"--params1\", dest=\"params1\",
+          type=int, required=False, default=argparse.SUPPRESS)\n_parser.add_argument(\"--params2\",
+          dest=\"params2\", type=int, required=False, default=argparse.SUPPRESS)\n_parser.add_argument(\"--output-text\",
+          dest=\"output_text_path\", type=_make_parent_dirs_and_return_path, required=True,
+          default=argparse.SUPPRESS)\n_parsed_args = vars(_parser.parse_args())\n\n_outputs
+          = add_double(**_parsed_args)\n"], "image": "python:3.7"}}, "inputs": [{"default":
+          "0", "name": "params1", "optional": true, "type": "Integer"}, {"default":
+          "0", "name": "params2", "optional": true, "type": "Integer"}], "name": "Add
+          double", "outputs": [{"name": "output_text", "type": "String"}]}', pipelines.kubeflow.org/component_ref: '{}',
+        pipelines.kubeflow.org/arguments.parameters: '{"params1": "10", "params2":
+          "10"}'}
+  - name: add-double-file
+    container:
+      args: [--params1, /tmp/inputs/params1/data, --params2, /tmp/inputs/params2/data,
+        --output-text, /tmp/outputs/output_text/data]
+      command:
+      - sh
+      - -ec
+      - |
+        program_path=$(mktemp)
+        printf "%s" "$0" > "$program_path"
+        python3 -u "$program_path" "$@"
+      - |
+        def _make_parent_dirs_and_return_path(file_path: str):
+            import os
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            return file_path
+
+        def add_double_file(
+                output_text_path, params1, params2):
+            f1 = open(params1)
+            number1 = int(f1.readline())
+            f2 = open(params2)
+            number2 = int(f2.readline())
+            print("step in add_double_file")
+            with open(output_text_path, 'w') as writer:
+                writer.write(str(number1 + number2))
+
+        import argparse
+        _parser = argparse.ArgumentParser(prog='Add double file', description='')
+        _parser.add_argument("--params1", dest="params1", type=str, required=True, default=argparse.SUPPRESS)
+        _parser.add_argument("--params2", dest="params2", type=str, required=True, default=argparse.SUPPRESS)
+        _parser.add_argument("--output-text", dest="output_text_path", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
+        _parsed_args = vars(_parser.parse_args())
+
+        _outputs = add_double_file(**_parsed_args)
+      image: python:3.7
+    inputs:
+      artifacts:
+      - {name: add-single-6-output_text, path: /tmp/inputs/params1/data}
+      - {name: add-single-2-output_text, path: /tmp/inputs/params2/data}
+    outputs:
+      artifacts:
+      - {name: add-double-file-output_text, path: /tmp/outputs/output_text/data}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.11
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"implementation": {"container":
+          {"args": ["--params1", {"inputPath": "params1"}, "--params2", {"inputPath":
+          "params2"}, "--output-text", {"outputPath": "output_text"}], "command":
+          ["sh", "-ec", "program_path=$(mktemp)\nprintf \"%s\" \"$0\" > \"$program_path\"\npython3
+          -u \"$program_path\" \"$@\"\n", "def _make_parent_dirs_and_return_path(file_path:
+          str):\n    import os\n    os.makedirs(os.path.dirname(file_path), exist_ok=True)\n    return
+          file_path\n\ndef add_double_file(\n        output_text_path, params1, params2):\n    f1
+          = open(params1)\n    number1 = int(f1.readline())\n    f2 = open(params2)\n    number2
+          = int(f2.readline())\n    print(\"step in add_double_file\")\n    with open(output_text_path,
+          ''w'') as writer:\n        writer.write(str(number1 + number2))\n\nimport
+          argparse\n_parser = argparse.ArgumentParser(prog=''Add double file'', description='''')\n_parser.add_argument(\"--params1\",
+          dest=\"params1\", type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"--params2\",
+          dest=\"params2\", type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"--output-text\",
+          dest=\"output_text_path\", type=_make_parent_dirs_and_return_path, required=True,
+          default=argparse.SUPPRESS)\n_parsed_args = vars(_parser.parse_args())\n\n_outputs
+          = add_double_file(**_parsed_args)\n"], "image": "python:3.7"}}, "inputs":
+          [{"name": "params1"}, {"name": "params2"}], "name": "Add double file", "outputs":
+          [{"name": "output_text", "type": "String"}]}', pipelines.kubeflow.org/component_ref: '{}'}
+  - name: add-double-file-2
+    container:
+      args: [--params1, /tmp/inputs/params1/data, --params2, /tmp/inputs/params2/data,
+        --output-text, /tmp/outputs/output_text/data]
+      command:
+      - sh
+      - -ec
+      - |
+        program_path=$(mktemp)
+        printf "%s" "$0" > "$program_path"
+        python3 -u "$program_path" "$@"
+      - |
+        def _make_parent_dirs_and_return_path(file_path: str):
+            import os
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            return file_path
+
+        def add_double_file(
+                output_text_path, params1, params2):
+            f1 = open(params1)
+            number1 = int(f1.readline())
+            f2 = open(params2)
+            number2 = int(f2.readline())
+            print("step in add_double_file")
+            with open(output_text_path, 'w') as writer:
+                writer.write(str(number1 + number2))
+
+        import argparse
+        _parser = argparse.ArgumentParser(prog='Add double file', description='')
+        _parser.add_argument("--params1", dest="params1", type=str, required=True, default=argparse.SUPPRESS)
+        _parser.add_argument("--params2", dest="params2", type=str, required=True, default=argparse.SUPPRESS)
+        _parser.add_argument("--output-text", dest="output_text_path", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
+        _parsed_args = vars(_parser.parse_args())
+
+        _outputs = add_double_file(**_parsed_args)
+      image: python:3.7
+    inputs:
+      artifacts:
+      - {name: add-single-3-output_text, path: /tmp/inputs/params1/data}
+      - {name: add-double-file-output_text, path: /tmp/inputs/params2/data}
+    outputs:
+      artifacts:
+      - {name: add-double-file-2-output_text, path: /tmp/outputs/output_text/data}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.11
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"implementation": {"container":
+          {"args": ["--params1", {"inputPath": "params1"}, "--params2", {"inputPath":
+          "params2"}, "--output-text", {"outputPath": "output_text"}], "command":
+          ["sh", "-ec", "program_path=$(mktemp)\nprintf \"%s\" \"$0\" > \"$program_path\"\npython3
+          -u \"$program_path\" \"$@\"\n", "def _make_parent_dirs_and_return_path(file_path:
+          str):\n    import os\n    os.makedirs(os.path.dirname(file_path), exist_ok=True)\n    return
+          file_path\n\ndef add_double_file(\n        output_text_path, params1, params2):\n    f1
+          = open(params1)\n    number1 = int(f1.readline())\n    f2 = open(params2)\n    number2
+          = int(f2.readline())\n    print(\"step in add_double_file\")\n    with open(output_text_path,
+          ''w'') as writer:\n        writer.write(str(number1 + number2))\n\nimport
+          argparse\n_parser = argparse.ArgumentParser(prog=''Add double file'', description='''')\n_parser.add_argument(\"--params1\",
+          dest=\"params1\", type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"--params2\",
+          dest=\"params2\", type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"--output-text\",
+          dest=\"output_text_path\", type=_make_parent_dirs_and_return_path, required=True,
+          default=argparse.SUPPRESS)\n_parsed_args = vars(_parser.parse_args())\n\n_outputs
+          = add_double_file(**_parsed_args)\n"], "image": "python:3.7"}}, "inputs":
+          [{"name": "params1"}, {"name": "params2"}], "name": "Add double file", "outputs":
+          [{"name": "output_text", "type": "String"}]}', pipelines.kubeflow.org/component_ref: '{}'}
+  - name: add-double-file-3
+    container:
+      args: [--params1, /tmp/inputs/params1/data, --params2, /tmp/inputs/params2/data,
+        --output-text, /tmp/outputs/output_text/data]
+      command:
+      - sh
+      - -ec
+      - |
+        program_path=$(mktemp)
+        printf "%s" "$0" > "$program_path"
+        python3 -u "$program_path" "$@"
+      - |
+        def _make_parent_dirs_and_return_path(file_path: str):
+            import os
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            return file_path
+
+        def add_double_file(
+                output_text_path, params1, params2):
+            f1 = open(params1)
+            number1 = int(f1.readline())
+            f2 = open(params2)
+            number2 = int(f2.readline())
+            print("step in add_double_file")
+            with open(output_text_path, 'w') as writer:
+                writer.write(str(number1 + number2))
+
+        import argparse
+        _parser = argparse.ArgumentParser(prog='Add double file', description='')
+        _parser.add_argument("--params1", dest="params1", type=str, required=True, default=argparse.SUPPRESS)
+        _parser.add_argument("--params2", dest="params2", type=str, required=True, default=argparse.SUPPRESS)
+        _parser.add_argument("--output-text", dest="output_text_path", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
+        _parsed_args = vars(_parser.parse_args())
+
+        _outputs = add_double_file(**_parsed_args)
+      image: python:3.7
+    inputs:
+      artifacts:
+      - {name: add-double-file-2-output_text, path: /tmp/inputs/params1/data}
+      - {name: add-single-4-output_text, path: /tmp/inputs/params2/data}
+    outputs:
+      artifacts:
+      - {name: add-double-file-3-output_text, path: /tmp/outputs/output_text/data}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.11
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"implementation": {"container":
+          {"args": ["--params1", {"inputPath": "params1"}, "--params2", {"inputPath":
+          "params2"}, "--output-text", {"outputPath": "output_text"}], "command":
+          ["sh", "-ec", "program_path=$(mktemp)\nprintf \"%s\" \"$0\" > \"$program_path\"\npython3
+          -u \"$program_path\" \"$@\"\n", "def _make_parent_dirs_and_return_path(file_path:
+          str):\n    import os\n    os.makedirs(os.path.dirname(file_path), exist_ok=True)\n    return
+          file_path\n\ndef add_double_file(\n        output_text_path, params1, params2):\n    f1
+          = open(params1)\n    number1 = int(f1.readline())\n    f2 = open(params2)\n    number2
+          = int(f2.readline())\n    print(\"step in add_double_file\")\n    with open(output_text_path,
+          ''w'') as writer:\n        writer.write(str(number1 + number2))\n\nimport
+          argparse\n_parser = argparse.ArgumentParser(prog=''Add double file'', description='''')\n_parser.add_argument(\"--params1\",
+          dest=\"params1\", type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"--params2\",
+          dest=\"params2\", type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"--output-text\",
+          dest=\"output_text_path\", type=_make_parent_dirs_and_return_path, required=True,
+          default=argparse.SUPPRESS)\n_parsed_args = vars(_parser.parse_args())\n\n_outputs
+          = add_double_file(**_parsed_args)\n"], "image": "python:3.7"}}, "inputs":
+          [{"name": "params1"}, {"name": "params2"}], "name": "Add double file", "outputs":
+          [{"name": "output_text", "type": "String"}]}', pipelines.kubeflow.org/component_ref: '{}'}
+  - name: add-double-file-4
+    container:
+      args: [--params1, /tmp/inputs/params1/data, --params2, /tmp/inputs/params2/data,
+        --output-text, /tmp/outputs/output_text/data]
+      command:
+      - sh
+      - -ec
+      - |
+        program_path=$(mktemp)
+        printf "%s" "$0" > "$program_path"
+        python3 -u "$program_path" "$@"
+      - |
+        def _make_parent_dirs_and_return_path(file_path: str):
+            import os
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            return file_path
+
+        def add_double_file(
+                output_text_path, params1, params2):
+            f1 = open(params1)
+            number1 = int(f1.readline())
+            f2 = open(params2)
+            number2 = int(f2.readline())
+            print("step in add_double_file")
+            with open(output_text_path, 'w') as writer:
+                writer.write(str(number1 + number2))
+
+        import argparse
+        _parser = argparse.ArgumentParser(prog='Add double file', description='')
+        _parser.add_argument("--params1", dest="params1", type=str, required=True, default=argparse.SUPPRESS)
+        _parser.add_argument("--params2", dest="params2", type=str, required=True, default=argparse.SUPPRESS)
+        _parser.add_argument("--output-text", dest="output_text_path", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
+        _parsed_args = vars(_parser.parse_args())
+
+        _outputs = add_double_file(**_parsed_args)
+      image: python:3.7
+    inputs:
+      artifacts:
+      - {name: add-double-file-3-output_text, path: /tmp/inputs/params1/data}
+      - {name: add-single-5-output_text, path: /tmp/inputs/params2/data}
+    outputs:
+      artifacts:
+      - {name: add-double-file-4-output_text, path: /tmp/outputs/output_text/data}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.11
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"implementation": {"container":
+          {"args": ["--params1", {"inputPath": "params1"}, "--params2", {"inputPath":
+          "params2"}, "--output-text", {"outputPath": "output_text"}], "command":
+          ["sh", "-ec", "program_path=$(mktemp)\nprintf \"%s\" \"$0\" > \"$program_path\"\npython3
+          -u \"$program_path\" \"$@\"\n", "def _make_parent_dirs_and_return_path(file_path:
+          str):\n    import os\n    os.makedirs(os.path.dirname(file_path), exist_ok=True)\n    return
+          file_path\n\ndef add_double_file(\n        output_text_path, params1, params2):\n    f1
+          = open(params1)\n    number1 = int(f1.readline())\n    f2 = open(params2)\n    number2
+          = int(f2.readline())\n    print(\"step in add_double_file\")\n    with open(output_text_path,
+          ''w'') as writer:\n        writer.write(str(number1 + number2))\n\nimport
+          argparse\n_parser = argparse.ArgumentParser(prog=''Add double file'', description='''')\n_parser.add_argument(\"--params1\",
+          dest=\"params1\", type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"--params2\",
+          dest=\"params2\", type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"--output-text\",
+          dest=\"output_text_path\", type=_make_parent_dirs_and_return_path, required=True,
+          default=argparse.SUPPRESS)\n_parsed_args = vars(_parser.parse_args())\n\n_outputs
+          = add_double_file(**_parsed_args)\n"], "image": "python:3.7"}}, "inputs":
+          [{"name": "params1"}, {"name": "params2"}], "name": "Add double file", "outputs":
+          [{"name": "output_text", "type": "String"}]}', pipelines.kubeflow.org/component_ref: '{}'}
+  - name: add-double-file-5
+    container:
+      args: [--params1, /tmp/inputs/params1/data, --params2, /tmp/inputs/params2/data,
+        --output-text, /tmp/outputs/output_text/data]
+      command:
+      - sh
+      - -ec
+      - |
+        program_path=$(mktemp)
+        printf "%s" "$0" > "$program_path"
+        python3 -u "$program_path" "$@"
+      - |
+        def _make_parent_dirs_and_return_path(file_path: str):
+            import os
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            return file_path
+
+        def add_double_file(
+                output_text_path, params1, params2):
+            f1 = open(params1)
+            number1 = int(f1.readline())
+            f2 = open(params2)
+            number2 = int(f2.readline())
+            print("step in add_double_file")
+            with open(output_text_path, 'w') as writer:
+                writer.write(str(number1 + number2))
+
+        import argparse
+        _parser = argparse.ArgumentParser(prog='Add double file', description='')
+        _parser.add_argument("--params1", dest="params1", type=str, required=True, default=argparse.SUPPRESS)
+        _parser.add_argument("--params2", dest="params2", type=str, required=True, default=argparse.SUPPRESS)
+        _parser.add_argument("--output-text", dest="output_text_path", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
+        _parsed_args = vars(_parser.parse_args())
+
+        _outputs = add_double_file(**_parsed_args)
+      image: python:3.7
+    inputs:
+      artifacts:
+      - {name: add-single-2-output_text, path: /tmp/inputs/params1/data}
+      - {name: add-double-file-4-output_text, path: /tmp/inputs/params2/data}
+    outputs:
+      artifacts:
+      - {name: add-double-file-5-output_text, path: /tmp/outputs/output_text/data}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.11
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"implementation": {"container":
+          {"args": ["--params1", {"inputPath": "params1"}, "--params2", {"inputPath":
+          "params2"}, "--output-text", {"outputPath": "output_text"}], "command":
+          ["sh", "-ec", "program_path=$(mktemp)\nprintf \"%s\" \"$0\" > \"$program_path\"\npython3
+          -u \"$program_path\" \"$@\"\n", "def _make_parent_dirs_and_return_path(file_path:
+          str):\n    import os\n    os.makedirs(os.path.dirname(file_path), exist_ok=True)\n    return
+          file_path\n\ndef add_double_file(\n        output_text_path, params1, params2):\n    f1
+          = open(params1)\n    number1 = int(f1.readline())\n    f2 = open(params2)\n    number2
+          = int(f2.readline())\n    print(\"step in add_double_file\")\n    with open(output_text_path,
+          ''w'') as writer:\n        writer.write(str(number1 + number2))\n\nimport
+          argparse\n_parser = argparse.ArgumentParser(prog=''Add double file'', description='''')\n_parser.add_argument(\"--params1\",
+          dest=\"params1\", type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"--params2\",
+          dest=\"params2\", type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"--output-text\",
+          dest=\"output_text_path\", type=_make_parent_dirs_and_return_path, required=True,
+          default=argparse.SUPPRESS)\n_parsed_args = vars(_parser.parse_args())\n\n_outputs
+          = add_double_file(**_parsed_args)\n"], "image": "python:3.7"}}, "inputs":
+          [{"name": "params1"}, {"name": "params2"}], "name": "Add double file", "outputs":
+          [{"name": "output_text", "type": "String"}]}', pipelines.kubeflow.org/component_ref: '{}'}
+  - name: add-single
+    container:
+      args: [--text, /tmp/inputs/text/data, --params1, '1', --output-text, /tmp/outputs/output_text/data]
+      command:
+      - sh
+      - -ec
+      - |
+        program_path=$(mktemp)
+        printf "%s" "$0" > "$program_path"
+        python3 -u "$program_path" "$@"
+      - |
+        def _make_parent_dirs_and_return_path(file_path: str):
+            import os
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            return file_path
+
+        def add_single(text_path,
+                       output_text_path,
+                       params1 = 0):
+            print("step in add_single")
+            params2 = 0
+            f = open(text_path)
+            params2 = int(f.readline())
+            with open(output_text_path, 'w') as writer:
+                writer.write(str(params1 )+"\n")
+                writer.write(str( params2)+"\n")
+                writer.write(str(params1 + params2)+"\n")
+
+        import argparse
+        _parser = argparse.ArgumentParser(prog='Add single', description='')
+        _parser.add_argument("--text", dest="text_path", type=str, required=True, default=argparse.SUPPRESS)
+        _parser.add_argument("--params1", dest="params1", type=int, required=False, default=argparse.SUPPRESS)
+        _parser.add_argument("--output-text", dest="output_text_path", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
+        _parsed_args = vars(_parser.parse_args())
+
+        _outputs = add_single(**_parsed_args)
+      image: python:3.7
+    inputs:
+      artifacts:
+      - {name: add-double-output_text, path: /tmp/inputs/text/data}
+    outputs:
+      artifacts:
+      - {name: add-single-output_text, path: /tmp/outputs/output_text/data}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.11
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"implementation": {"container":
+          {"args": ["--text", {"inputPath": "text"}, {"if": {"cond": {"isPresent":
+          "params1"}, "then": ["--params1", {"inputValue": "params1"}]}}, "--output-text",
+          {"outputPath": "output_text"}], "command": ["sh", "-ec", "program_path=$(mktemp)\nprintf
+          \"%s\" \"$0\" > \"$program_path\"\npython3 -u \"$program_path\" \"$@\"\n",
+          "def _make_parent_dirs_and_return_path(file_path: str):\n    import os\n    os.makedirs(os.path.dirname(file_path),
+          exist_ok=True)\n    return file_path\n\ndef add_single(text_path,\n               output_text_path,\n               params1
+          = 0):\n    print(\"step in add_single\")\n    params2 = 0\n    f = open(text_path)\n    params2
+          = int(f.readline())\n    with open(output_text_path, ''w'') as writer:\n        writer.write(str(params1
+          )+\"\\n\")\n        writer.write(str( params2)+\"\\n\")\n        writer.write(str(params1
+          + params2)+\"\\n\")\n\nimport argparse\n_parser = argparse.ArgumentParser(prog=''Add
+          single'', description='''')\n_parser.add_argument(\"--text\", dest=\"text_path\",
+          type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"--params1\",
+          dest=\"params1\", type=int, required=False, default=argparse.SUPPRESS)\n_parser.add_argument(\"--output-text\",
+          dest=\"output_text_path\", type=_make_parent_dirs_and_return_path, required=True,
+          default=argparse.SUPPRESS)\n_parsed_args = vars(_parser.parse_args())\n\n_outputs
+          = add_single(**_parsed_args)\n"], "image": "python:3.7"}}, "inputs": [{"name":
+          "text"}, {"default": "0", "name": "params1", "optional": true, "type": "Integer"}],
+          "name": "Add single", "outputs": [{"name": "output_text", "type": "String"}]}',
+        pipelines.kubeflow.org/component_ref: '{}', pipelines.kubeflow.org/arguments.parameters: '{"params1":
+          "1"}'}
+  - name: add-single-2
+    container:
+      args: [--text, /tmp/inputs/text/data, --params1, '1', --output-text, /tmp/outputs/output_text/data]
+      command:
+      - sh
+      - -ec
+      - |
+        program_path=$(mktemp)
+        printf "%s" "$0" > "$program_path"
+        python3 -u "$program_path" "$@"
+      - |
+        def _make_parent_dirs_and_return_path(file_path: str):
+            import os
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            return file_path
+
+        def add_single(text_path,
+                       output_text_path,
+                       params1 = 0):
+            print("step in add_single")
+            params2 = 0
+            f = open(text_path)
+            params2 = int(f.readline())
+            with open(output_text_path, 'w') as writer:
+                writer.write(str(params1 )+"\n")
+                writer.write(str( params2)+"\n")
+                writer.write(str(params1 + params2)+"\n")
+
+        import argparse
+        _parser = argparse.ArgumentParser(prog='Add single', description='')
+        _parser.add_argument("--text", dest="text_path", type=str, required=True, default=argparse.SUPPRESS)
+        _parser.add_argument("--params1", dest="params1", type=int, required=False, default=argparse.SUPPRESS)
+        _parser.add_argument("--output-text", dest="output_text_path", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
+        _parsed_args = vars(_parser.parse_args())
+
+        _outputs = add_single(**_parsed_args)
+      image: python:3.7
+    inputs:
+      artifacts:
+      - {name: add-double-output_text, path: /tmp/inputs/text/data}
+    outputs:
+      artifacts:
+      - {name: add-single-2-output_text, path: /tmp/outputs/output_text/data}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.11
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"implementation": {"container":
+          {"args": ["--text", {"inputPath": "text"}, {"if": {"cond": {"isPresent":
+          "params1"}, "then": ["--params1", {"inputValue": "params1"}]}}, "--output-text",
+          {"outputPath": "output_text"}], "command": ["sh", "-ec", "program_path=$(mktemp)\nprintf
+          \"%s\" \"$0\" > \"$program_path\"\npython3 -u \"$program_path\" \"$@\"\n",
+          "def _make_parent_dirs_and_return_path(file_path: str):\n    import os\n    os.makedirs(os.path.dirname(file_path),
+          exist_ok=True)\n    return file_path\n\ndef add_single(text_path,\n               output_text_path,\n               params1
+          = 0):\n    print(\"step in add_single\")\n    params2 = 0\n    f = open(text_path)\n    params2
+          = int(f.readline())\n    with open(output_text_path, ''w'') as writer:\n        writer.write(str(params1
+          )+\"\\n\")\n        writer.write(str( params2)+\"\\n\")\n        writer.write(str(params1
+          + params2)+\"\\n\")\n\nimport argparse\n_parser = argparse.ArgumentParser(prog=''Add
+          single'', description='''')\n_parser.add_argument(\"--text\", dest=\"text_path\",
+          type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"--params1\",
+          dest=\"params1\", type=int, required=False, default=argparse.SUPPRESS)\n_parser.add_argument(\"--output-text\",
+          dest=\"output_text_path\", type=_make_parent_dirs_and_return_path, required=True,
+          default=argparse.SUPPRESS)\n_parsed_args = vars(_parser.parse_args())\n\n_outputs
+          = add_single(**_parsed_args)\n"], "image": "python:3.7"}}, "inputs": [{"name":
+          "text"}, {"default": "0", "name": "params1", "optional": true, "type": "Integer"}],
+          "name": "Add single", "outputs": [{"name": "output_text", "type": "String"}]}',
+        pipelines.kubeflow.org/component_ref: '{}', pipelines.kubeflow.org/arguments.parameters: '{"params1":
+          "1"}'}
+  - name: add-single-3
+    container:
+      args: [--text, /tmp/inputs/text/data, --params1, '1', --output-text, /tmp/outputs/output_text/data]
+      command:
+      - sh
+      - -ec
+      - |
+        program_path=$(mktemp)
+        printf "%s" "$0" > "$program_path"
+        python3 -u "$program_path" "$@"
+      - |
+        def _make_parent_dirs_and_return_path(file_path: str):
+            import os
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            return file_path
+
+        def add_single(text_path,
+                       output_text_path,
+                       params1 = 0):
+            print("step in add_single")
+            params2 = 0
+            f = open(text_path)
+            params2 = int(f.readline())
+            with open(output_text_path, 'w') as writer:
+                writer.write(str(params1 )+"\n")
+                writer.write(str( params2)+"\n")
+                writer.write(str(params1 + params2)+"\n")
+
+        import argparse
+        _parser = argparse.ArgumentParser(prog='Add single', description='')
+        _parser.add_argument("--text", dest="text_path", type=str, required=True, default=argparse.SUPPRESS)
+        _parser.add_argument("--params1", dest="params1", type=int, required=False, default=argparse.SUPPRESS)
+        _parser.add_argument("--output-text", dest="output_text_path", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
+        _parsed_args = vars(_parser.parse_args())
+
+        _outputs = add_single(**_parsed_args)
+      image: python:3.7
+    inputs:
+      artifacts:
+      - {name: add-single-output_text, path: /tmp/inputs/text/data}
+    outputs:
+      artifacts:
+      - {name: add-single-3-output_text, path: /tmp/outputs/output_text/data}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.11
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"implementation": {"container":
+          {"args": ["--text", {"inputPath": "text"}, {"if": {"cond": {"isPresent":
+          "params1"}, "then": ["--params1", {"inputValue": "params1"}]}}, "--output-text",
+          {"outputPath": "output_text"}], "command": ["sh", "-ec", "program_path=$(mktemp)\nprintf
+          \"%s\" \"$0\" > \"$program_path\"\npython3 -u \"$program_path\" \"$@\"\n",
+          "def _make_parent_dirs_and_return_path(file_path: str):\n    import os\n    os.makedirs(os.path.dirname(file_path),
+          exist_ok=True)\n    return file_path\n\ndef add_single(text_path,\n               output_text_path,\n               params1
+          = 0):\n    print(\"step in add_single\")\n    params2 = 0\n    f = open(text_path)\n    params2
+          = int(f.readline())\n    with open(output_text_path, ''w'') as writer:\n        writer.write(str(params1
+          )+\"\\n\")\n        writer.write(str( params2)+\"\\n\")\n        writer.write(str(params1
+          + params2)+\"\\n\")\n\nimport argparse\n_parser = argparse.ArgumentParser(prog=''Add
+          single'', description='''')\n_parser.add_argument(\"--text\", dest=\"text_path\",
+          type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"--params1\",
+          dest=\"params1\", type=int, required=False, default=argparse.SUPPRESS)\n_parser.add_argument(\"--output-text\",
+          dest=\"output_text_path\", type=_make_parent_dirs_and_return_path, required=True,
+          default=argparse.SUPPRESS)\n_parsed_args = vars(_parser.parse_args())\n\n_outputs
+          = add_single(**_parsed_args)\n"], "image": "python:3.7"}}, "inputs": [{"name":
+          "text"}, {"default": "0", "name": "params1", "optional": true, "type": "Integer"}],
+          "name": "Add single", "outputs": [{"name": "output_text", "type": "String"}]}',
+        pipelines.kubeflow.org/component_ref: '{}', pipelines.kubeflow.org/arguments.parameters: '{"params1":
+          "1"}'}
+  - name: add-single-4
+    container:
+      args: [--text, /tmp/inputs/text/data, --params1, '1', --output-text, /tmp/outputs/output_text/data]
+      command:
+      - sh
+      - -ec
+      - |
+        program_path=$(mktemp)
+        printf "%s" "$0" > "$program_path"
+        python3 -u "$program_path" "$@"
+      - |
+        def _make_parent_dirs_and_return_path(file_path: str):
+            import os
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            return file_path
+
+        def add_single(text_path,
+                       output_text_path,
+                       params1 = 0):
+            print("step in add_single")
+            params2 = 0
+            f = open(text_path)
+            params2 = int(f.readline())
+            with open(output_text_path, 'w') as writer:
+                writer.write(str(params1 )+"\n")
+                writer.write(str( params2)+"\n")
+                writer.write(str(params1 + params2)+"\n")
+
+        import argparse
+        _parser = argparse.ArgumentParser(prog='Add single', description='')
+        _parser.add_argument("--text", dest="text_path", type=str, required=True, default=argparse.SUPPRESS)
+        _parser.add_argument("--params1", dest="params1", type=int, required=False, default=argparse.SUPPRESS)
+        _parser.add_argument("--output-text", dest="output_text_path", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
+        _parsed_args = vars(_parser.parse_args())
+
+        _outputs = add_single(**_parsed_args)
+      image: python:3.7
+    inputs:
+      artifacts:
+      - {name: add-single-3-output_text, path: /tmp/inputs/text/data}
+    outputs:
+      artifacts:
+      - {name: add-single-4-output_text, path: /tmp/outputs/output_text/data}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.11
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"implementation": {"container":
+          {"args": ["--text", {"inputPath": "text"}, {"if": {"cond": {"isPresent":
+          "params1"}, "then": ["--params1", {"inputValue": "params1"}]}}, "--output-text",
+          {"outputPath": "output_text"}], "command": ["sh", "-ec", "program_path=$(mktemp)\nprintf
+          \"%s\" \"$0\" > \"$program_path\"\npython3 -u \"$program_path\" \"$@\"\n",
+          "def _make_parent_dirs_and_return_path(file_path: str):\n    import os\n    os.makedirs(os.path.dirname(file_path),
+          exist_ok=True)\n    return file_path\n\ndef add_single(text_path,\n               output_text_path,\n               params1
+          = 0):\n    print(\"step in add_single\")\n    params2 = 0\n    f = open(text_path)\n    params2
+          = int(f.readline())\n    with open(output_text_path, ''w'') as writer:\n        writer.write(str(params1
+          )+\"\\n\")\n        writer.write(str( params2)+\"\\n\")\n        writer.write(str(params1
+          + params2)+\"\\n\")\n\nimport argparse\n_parser = argparse.ArgumentParser(prog=''Add
+          single'', description='''')\n_parser.add_argument(\"--text\", dest=\"text_path\",
+          type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"--params1\",
+          dest=\"params1\", type=int, required=False, default=argparse.SUPPRESS)\n_parser.add_argument(\"--output-text\",
+          dest=\"output_text_path\", type=_make_parent_dirs_and_return_path, required=True,
+          default=argparse.SUPPRESS)\n_parsed_args = vars(_parser.parse_args())\n\n_outputs
+          = add_single(**_parsed_args)\n"], "image": "python:3.7"}}, "inputs": [{"name":
+          "text"}, {"default": "0", "name": "params1", "optional": true, "type": "Integer"}],
+          "name": "Add single", "outputs": [{"name": "output_text", "type": "String"}]}',
+        pipelines.kubeflow.org/component_ref: '{}', pipelines.kubeflow.org/arguments.parameters: '{"params1":
+          "1"}'}
+  - name: add-single-5
+    container:
+      args: [--text, /tmp/inputs/text/data, --params1, '1', --output-text, /tmp/outputs/output_text/data]
+      command:
+      - sh
+      - -ec
+      - |
+        program_path=$(mktemp)
+        printf "%s" "$0" > "$program_path"
+        python3 -u "$program_path" "$@"
+      - |
+        def _make_parent_dirs_and_return_path(file_path: str):
+            import os
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            return file_path
+
+        def add_single(text_path,
+                       output_text_path,
+                       params1 = 0):
+            print("step in add_single")
+            params2 = 0
+            f = open(text_path)
+            params2 = int(f.readline())
+            with open(output_text_path, 'w') as writer:
+                writer.write(str(params1 )+"\n")
+                writer.write(str( params2)+"\n")
+                writer.write(str(params1 + params2)+"\n")
+
+        import argparse
+        _parser = argparse.ArgumentParser(prog='Add single', description='')
+        _parser.add_argument("--text", dest="text_path", type=str, required=True, default=argparse.SUPPRESS)
+        _parser.add_argument("--params1", dest="params1", type=int, required=False, default=argparse.SUPPRESS)
+        _parser.add_argument("--output-text", dest="output_text_path", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
+        _parsed_args = vars(_parser.parse_args())
+
+        _outputs = add_single(**_parsed_args)
+      image: python:3.7
+    inputs:
+      artifacts:
+      - {name: add-single-4-output_text, path: /tmp/inputs/text/data}
+    outputs:
+      artifacts:
+      - {name: add-single-5-output_text, path: /tmp/outputs/output_text/data}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.11
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"implementation": {"container":
+          {"args": ["--text", {"inputPath": "text"}, {"if": {"cond": {"isPresent":
+          "params1"}, "then": ["--params1", {"inputValue": "params1"}]}}, "--output-text",
+          {"outputPath": "output_text"}], "command": ["sh", "-ec", "program_path=$(mktemp)\nprintf
+          \"%s\" \"$0\" > \"$program_path\"\npython3 -u \"$program_path\" \"$@\"\n",
+          "def _make_parent_dirs_and_return_path(file_path: str):\n    import os\n    os.makedirs(os.path.dirname(file_path),
+          exist_ok=True)\n    return file_path\n\ndef add_single(text_path,\n               output_text_path,\n               params1
+          = 0):\n    print(\"step in add_single\")\n    params2 = 0\n    f = open(text_path)\n    params2
+          = int(f.readline())\n    with open(output_text_path, ''w'') as writer:\n        writer.write(str(params1
+          )+\"\\n\")\n        writer.write(str( params2)+\"\\n\")\n        writer.write(str(params1
+          + params2)+\"\\n\")\n\nimport argparse\n_parser = argparse.ArgumentParser(prog=''Add
+          single'', description='''')\n_parser.add_argument(\"--text\", dest=\"text_path\",
+          type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"--params1\",
+          dest=\"params1\", type=int, required=False, default=argparse.SUPPRESS)\n_parser.add_argument(\"--output-text\",
+          dest=\"output_text_path\", type=_make_parent_dirs_and_return_path, required=True,
+          default=argparse.SUPPRESS)\n_parsed_args = vars(_parser.parse_args())\n\n_outputs
+          = add_single(**_parsed_args)\n"], "image": "python:3.7"}}, "inputs": [{"name":
+          "text"}, {"default": "0", "name": "params1", "optional": true, "type": "Integer"}],
+          "name": "Add single", "outputs": [{"name": "output_text", "type": "String"}]}',
+        pipelines.kubeflow.org/component_ref: '{}', pipelines.kubeflow.org/arguments.parameters: '{"params1":
+          "1"}'}
+  - name: add-single-6
+    container:
+      args: [--text, /tmp/inputs/text/data, --params1, '1', --output-text, /tmp/outputs/output_text/data]
+      command:
+      - sh
+      - -ec
+      - |
+        program_path=$(mktemp)
+        printf "%s" "$0" > "$program_path"
+        python3 -u "$program_path" "$@"
+      - |
+        def _make_parent_dirs_and_return_path(file_path: str):
+            import os
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            return file_path
+
+        def add_single(text_path,
+                       output_text_path,
+                       params1 = 0):
+            print("step in add_single")
+            params2 = 0
+            f = open(text_path)
+            params2 = int(f.readline())
+            with open(output_text_path, 'w') as writer:
+                writer.write(str(params1 )+"\n")
+                writer.write(str( params2)+"\n")
+                writer.write(str(params1 + params2)+"\n")
+
+        import argparse
+        _parser = argparse.ArgumentParser(prog='Add single', description='')
+        _parser.add_argument("--text", dest="text_path", type=str, required=True, default=argparse.SUPPRESS)
+        _parser.add_argument("--params1", dest="params1", type=int, required=False, default=argparse.SUPPRESS)
+        _parser.add_argument("--output-text", dest="output_text_path", type=_make_parent_dirs_and_return_path, required=True, default=argparse.SUPPRESS)
+        _parsed_args = vars(_parser.parse_args())
+
+        _outputs = add_single(**_parsed_args)
+      image: python:3.7
+    inputs:
+      artifacts:
+      - {name: add-single-5-output_text, path: /tmp/inputs/text/data}
+    outputs:
+      artifacts:
+      - {name: add-single-6-output_text, path: /tmp/outputs/output_text/data}
+    metadata:
+      labels:
+        pipelines.kubeflow.org/kfp_sdk_version: 1.8.11
+        pipelines.kubeflow.org/pipeline-sdk-type: kfp
+        pipelines.kubeflow.org/enable_caching: "true"
+      annotations: {pipelines.kubeflow.org/component_spec: '{"implementation": {"container":
+          {"args": ["--text", {"inputPath": "text"}, {"if": {"cond": {"isPresent":
+          "params1"}, "then": ["--params1", {"inputValue": "params1"}]}}, "--output-text",
+          {"outputPath": "output_text"}], "command": ["sh", "-ec", "program_path=$(mktemp)\nprintf
+          \"%s\" \"$0\" > \"$program_path\"\npython3 -u \"$program_path\" \"$@\"\n",
+          "def _make_parent_dirs_and_return_path(file_path: str):\n    import os\n    os.makedirs(os.path.dirname(file_path),
+          exist_ok=True)\n    return file_path\n\ndef add_single(text_path,\n               output_text_path,\n               params1
+          = 0):\n    print(\"step in add_single\")\n    params2 = 0\n    f = open(text_path)\n    params2
+          = int(f.readline())\n    with open(output_text_path, ''w'') as writer:\n        writer.write(str(params1
+          )+\"\\n\")\n        writer.write(str( params2)+\"\\n\")\n        writer.write(str(params1
+          + params2)+\"\\n\")\n\nimport argparse\n_parser = argparse.ArgumentParser(prog=''Add
+          single'', description='''')\n_parser.add_argument(\"--text\", dest=\"text_path\",
+          type=str, required=True, default=argparse.SUPPRESS)\n_parser.add_argument(\"--params1\",
+          dest=\"params1\", type=int, required=False, default=argparse.SUPPRESS)\n_parser.add_argument(\"--output-text\",
+          dest=\"output_text_path\", type=_make_parent_dirs_and_return_path, required=True,
+          default=argparse.SUPPRESS)\n_parsed_args = vars(_parser.parse_args())\n\n_outputs
+          = add_single(**_parsed_args)\n"], "image": "python:3.7"}}, "inputs": [{"name":
+          "text"}, {"default": "0", "name": "params1", "optional": true, "type": "Integer"}],
+          "name": "Add single", "outputs": [{"name": "output_text", "type": "String"}]}',
+        pipelines.kubeflow.org/component_ref: '{}', pipelines.kubeflow.org/arguments.parameters: '{"params1":
+          "1"}'}
+  - name: pipeline-my-handle
+    dag:
+      tasks:
+      - {name: add-double, template: add-double}
+      - name: add-double-file
+        template: add-double-file
+        dependencies: [add-single-2, add-single-6]
+        arguments:
+          artifacts:
+          - {name: add-single-2-output_text, from: '{{tasks.add-single-2.outputs.artifacts.add-single-2-output_text}}'}
+          - {name: add-single-6-output_text, from: '{{tasks.add-single-6.outputs.artifacts.add-single-6-output_text}}'}
+      - name: add-double-file-2
+        template: add-double-file-2
+        dependencies: [add-double-file, add-single-3]
+        arguments:
+          artifacts:
+          - {name: add-double-file-output_text, from: '{{tasks.add-double-file.outputs.artifacts.add-double-file-output_text}}'}
+          - {name: add-single-3-output_text, from: '{{tasks.add-single-3.outputs.artifacts.add-single-3-output_text}}'}
+      - name: add-double-file-3
+        template: add-double-file-3
+        dependencies: [add-double-file-2, add-single-4]
+        arguments:
+          artifacts:
+          - {name: add-double-file-2-output_text, from: '{{tasks.add-double-file-2.outputs.artifacts.add-double-file-2-output_text}}'}
+          - {name: add-single-4-output_text, from: '{{tasks.add-single-4.outputs.artifacts.add-single-4-output_text}}'}
+      - name: add-double-file-4
+        template: add-double-file-4
+        dependencies: [add-double-file-3, add-single-5]
+        arguments:
+          artifacts:
+          - {name: add-double-file-3-output_text, from: '{{tasks.add-double-file-3.outputs.artifacts.add-double-file-3-output_text}}'}
+          - {name: add-single-5-output_text, from: '{{tasks.add-single-5.outputs.artifacts.add-single-5-output_text}}'}
+      - name: add-double-file-5
+        template: add-double-file-5
+        dependencies: [add-double-file-4, add-single-2]
+        arguments:
+          artifacts:
+          - {name: add-double-file-4-output_text, from: '{{tasks.add-double-file-4.outputs.artifacts.add-double-file-4-output_text}}'}
+          - {name: add-single-2-output_text, from: '{{tasks.add-single-2.outputs.artifacts.add-single-2-output_text}}'}
+      - name: add-single
+        template: add-single
+        dependencies: [add-double]
+        arguments:
+          artifacts:
+          - {name: add-double-output_text, from: '{{tasks.add-double.outputs.artifacts.add-double-output_text}}'}
+      - name: add-single-2
+        template: add-single-2
+        dependencies: [add-double]
+        arguments:
+          artifacts:
+          - {name: add-double-output_text, from: '{{tasks.add-double.outputs.artifacts.add-double-output_text}}'}
+      - name: add-single-3
+        template: add-single-3
+        dependencies: [add-single]
+        arguments:
+          artifacts:
+          - {name: add-single-output_text, from: '{{tasks.add-single.outputs.artifacts.add-single-output_text}}'}
+      - name: add-single-4
+        template: add-single-4
+        dependencies: [add-single-3]
+        arguments:
+          artifacts:
+          - {name: add-single-3-output_text, from: '{{tasks.add-single-3.outputs.artifacts.add-single-3-output_text}}'}
+      - name: add-single-5
+        template: add-single-5
+        dependencies: [add-single-4]
+        arguments:
+          artifacts:
+          - {name: add-single-4-output_text, from: '{{tasks.add-single-4.outputs.artifacts.add-single-4-output_text}}'}
+      - name: add-single-6
+        template: add-single-6
+        dependencies: [add-single-5]
+        arguments:
+          artifacts:
+          - {name: add-single-5-output_text, from: '{{tasks.add-single-5.outputs.artifacts.add-single-5-output_text}}'}
+  arguments:
+    parameters: []
+  serviceAccountName: pipeline-runner
